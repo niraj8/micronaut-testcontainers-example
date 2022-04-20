@@ -1,0 +1,97 @@
+plugins {
+    id("org.jetbrains.kotlin.jvm") version "$kotlinVersion"
+    id("org.jetbrains.kotlin.kapt") version "$kotlinVersion"
+    id("org.jetbrains.kotlin.plugin.allopen") version "$kotlinVersion"
+    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("io.micronaut.application") version "3.2.2"
+
+    id 'com.medly.norm' version "$normVersion"
+}
+
+repositories {
+    mavenCentral()
+}
+
+version = "0.1"
+group = "dev.medly.books"
+
+configurations {
+    normcli
+}
+
+dependencies {
+    implementation("io.micronaut:micronaut-jackson-databind")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    implementation("io.micronaut.liquibase:micronaut-liquibase")
+    implementation("io.micronaut.sql:micronaut-jdbc-hikari")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("org.postgresql:postgresql")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers")
+    implementation("io.micronaut:micronaut-validation")
+
+    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    testImplementation("io.micronaut:micronaut-http-client")
+
+    normcli "com.medly.norm:cli:$normVersion"
+}
+
+sourceSets {
+    main.kotlin.srcDirs = ['src/kotlin', 'src/gen']
+    test.kotlin.srcDirs = ['src/test']
+    main.resources.srcDirs = ['src/resources']
+    test.resources.srcDirs = ['src/test-resources']
+    main.java.srcDirs = [] // disable java source dirs
+    test.java.srcDirs = [] // disable java test dirs
+}
+
+
+application {
+    mainClass.set("dev.medly.books.ApplicationKt")
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+}
+
+graalvmNative.toolchainDetection = false
+micronaut {
+    runtime("lambda")
+    testRuntime("kotest")
+    processing {
+        incremental(true)
+        annotations("dev.medly.*")
+    }
+}
+
+
+tasks.named("dockerfileNative") {
+    args(
+        "-XX:MaximumHeapSizePercent=80",
+        "-Dio.netty.allocator.numDirectArenas=0",
+        "-Dio.netty.noPreferDirect=true"
+    )
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName.set('mn-graalvm-application')
+            buildArgs.add('--verbose')
+        }
+    }
+}
+
+norm {
+    jdbcUrl = "jdbc:postgresql://localhost/postgres"
+    username = "postgres"
+    password = ""
+    inputDir = file("${rootProject.rootDir}/src/sql")
+    outDir = file("${rootProject.rootDir}/src/gen") // todo: gen files with group as package base
+    basePath = file("${rootProject.rootDir}/src/sql")
+}
+

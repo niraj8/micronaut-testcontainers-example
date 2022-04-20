@@ -1,0 +1,15 @@
+micronaut:
+  application:
+    name: books-simple-example
+datasources:
+  default:
+    # todo: fetch from ENV in production
+    url: jdbc:postgresql://localhost:5432/postgres
+    driverClassName: org.postgresql.Driver
+    username: postgres
+    password: ''
+    maximum-pool-size: 1 # todo: Is this appropriate for Lambda?
+liquibase:
+  datasources:
+    default:
+      change-log: 'classpath:db/liquibase-changelog.xml'

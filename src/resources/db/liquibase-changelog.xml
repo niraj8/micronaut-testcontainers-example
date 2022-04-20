@@ -1,0 +1,17 @@
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="001" author="Foo">
+        <sql>
+            CREATE TABLE books
+            (
+                id   SERIAL       NOT NULL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                isbn VARCHAR(255) NOT NULL
+            );
+        </sql>
+
+    </changeSet>
+</databaseChangeLog>
